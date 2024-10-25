@@ -1,0 +1,32 @@
+.edge_left {
+    position: absolute;
+    z-index: 10;
+    top: 0;
+    left: 0;
+    content: '';
+    width: 6rem;
+    height: 100%;
+    background: linear-gradient(to left, transparent, rgb(255, 255, 255) 80%)
+}
+.edge_right {
+    position: absolute;
+    z-index: 10;
+    top: 0;
+    right: 0;
+    content: '';
+    width: 6rem;
+    height: 100%;
+    background: linear-gradient(to right, transparent, rgb(255, 255, 255) 80%)
+}
+
+@media screen and (max-width: 30rem) {
+    .edge_left, .edge_right {
+      width: 3rem;
+    }
+  }
+
+
+.rightStart {
+    position: relative;
+    right: 0;
+}
