@@ -14,6 +14,7 @@ import image11 from '../assets/011.jpg';
 import { Button, Carousel } from "react-bootstrap";
 import { useEffect, useRef, useState } from "react";
 import classes from './Carousel.module.scss';
+import { CSSTransition } from "react-transition-group";
 
 const items = [
     image1,
@@ -77,58 +78,60 @@ const Slider = () => {
         })
     }
 
-    
+
     useEffect(() => {
         if (containerRef.current == null) return
-        
+
         const observer = new ResizeObserver(entries => {
             const container = entries[0]?.target
-            
+
             if (container == null) return
-            
+
             setLeftEdge(transition > 0)
             setRightEdge(
                 transition + container.clientWidth < container.scrollWidth
-                )
-            })
-            
-            observer.observe(containerRef.current)
-            
-            const currentEdge = containerRef.current.scrollWidth;
-            
-            stepWidth = currentEdge / items.length
-            
-            return () => {
-                observer.disconnect()
-            }
+            )
         })
-    
-        const handleTouchStart = (e) => {
 
-            const touchX = e.touches ? e.touches[0].clientX : e.clientX;
-            
-            setIsDragging(true);
-            setStartPos(touchX);
-            sliderRef.current.style.transition = "none";
-        };
-    
-        const handleTouchMove = (e) => {
-            if (!isDragging) return;
-            const touchX = e.touches ? e.touches[0].clientX : e.clientX;
-            const moveBy = touchX - startPos;
-            console.log(moveBy)
-            currentTranslate.current = prevTranslate.current + moveBy;
-            sliderRef.current.style.transform = `translateX(-${currentTranslate}px)`;
-        };
-    
-        const handleTouchEnd = () => {
-            setIsDragging(false);
-            prevTranslate.current = currentTranslate.current;
-            sliderRef.current.style.transition = "transform 1s ease-out";
-        };
+        observer.observe(containerRef.current)
 
-        return (
-            <>
+        const currentEdge = containerRef.current.scrollWidth;
+
+        stepWidth = currentEdge / items.length
+
+        return () => {
+            observer.disconnect()
+        }
+    })
+
+    const handleTouchStart = (e) => {
+
+        const touchX = e.touches ? e.touches[0].clientX : e.clientX;
+
+        setIsDragging(true);
+        setStartPos(touchX);
+        sliderRef.current.style.transition = "none";
+    };
+
+    const handleTouchMove = (e) => {
+        if (!isDragging) return;
+        const touchX = e.touches ? e.touches[0].clientX : e.clientX;
+        const moveBy = touchX - startPos;
+        console.log(moveBy)
+        currentTranslate.current = prevTranslate.current + moveBy;
+        sliderRef.current.style.transform = `translateX(-${currentTranslate}px)`;
+    };
+
+    const handleTouchEnd = () => {
+        setIsDragging(false);
+        prevTranslate.current = currentTranslate.current;
+        sliderRef.current.style.transition = "transform 1s ease-out";
+    };
+
+    console.log(rightEdge)
+
+    return (
+        <>
             <div className="mb-5 mx-3">
                 <Button className="border border-secondary text-secondary" disabled={!leftEdge} style={
                     {
@@ -153,46 +156,71 @@ const Slider = () => {
             </div>
 
             <div ref={containerRef} className="overflow-x-hidden position-relative">
-                {leftEdge && <div className={`${classes.edge_left}`}></div>}
-                <div ref={sliderRef}
+                <CSSTransition
+                    in={leftEdge}
+                    timeout={500}
+                    classNames={{
+                        enter: classes["fade-enter"],
+                        enterActive: classes["fade-enter-active"],
+                        exit: classes["fade-exit"],
+                        exitActive: classes["fade-exit-active"],
+                    }}
+                    unmountOnExit
+                >
+                    <div className={classes.edge_left}></div>
+                </CSSTransition>
 
-                    onMouseUp={isMobile ? handleTouchEnd : null}
-                    onMouseMove={isMobile && isDragging ? handleTouchMove : null}
-                    onMouseDown={isMobile ? handleTouchStart : null}
+            <div ref={sliderRef}
 
-                    onTouchStart={handleTouchStart}
-                    onTouchMove={handleTouchMove}
-                    onTouchEnd={handleTouchEnd}
+                onMouseUp={isMobile ? handleTouchEnd : null}
+                onMouseMove={isMobile && isDragging ? handleTouchMove : null}
+                onMouseDown={isMobile ? handleTouchStart : null}
 
-                    className={`d-flex ${direction ? `flex-row-reverse, ${classes.rightStart}` : 'flex-row'} flex-nowrap`}
-                    style={{ transform: `translateX(-${transition}px)`, width: "max-content", transition: '1s ease-out', }}>
-                    {items.map((e, index) => {
-                        if (index === 0) {
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
+
+                className={`d-flex ${direction ? `flex-row-reverse, ${classes.rightStart}` : 'flex-row'} flex-nowrap`}
+                style={{ transform: `translateX(-${transition}px)`, width: "max-content", transition: '1s ease-out', }}>
+                {items.map((e, index) => {
+                    if (index === 0) {
+                        return (
+                            <div>
+                                <InfoCard key={index} order='first' img={e} />
+                            </div>
+                        )
+                    }
+                    else {
+                        if (index === items.length - 1)
                             return (
                                 <div>
-                                    <InfoCard key={index} order='first' img={e} />
+                                    <InfoCard key={index} order='last' img={e} />
+                                </div>
+                            )
+                        else {
+                            return (
+                                <div>
+                                    <InfoCard key={index} img={e} />
                                 </div>
                             )
                         }
-                        else {
-                            if (index === items.length - 1)
-                                return (
-                                    <div>
-                                        <InfoCard key={index} order='last' img={e} />
-                                    </div>
-                                )
-                            else {
-                                return (
-                                    <div>
-                                        <InfoCard key={index} img={e} />
-                                    </div>
-                                )
-                            }
-                        }
-                    })}
-                </div>
-                {rightEdge && <div className={`${classes.edge_right} ${classes.main}`}></div>}
+                    }
+                })}
             </div>
+            <CSSTransition
+                in={rightEdge}
+                timeout={500}
+                classNames={{
+                    enter: classes["fade-enter"],
+                    enterActive: classes["fade-enter-active"],
+                    exit: classes["fade-exit"],
+                    exitActive: classes["fade-exit-active"],
+                }}
+                unmountOnExit
+            >
+                <div className={classes.edge_right}></div>
+            </CSSTransition>
+        </div >
         </>
     )
 }
